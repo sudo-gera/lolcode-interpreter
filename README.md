@@ -1,13 +1,19 @@
-# lolcode-interpreter
+# lolcode interpreter
 
 ### requirements:
 #### for running:
 * python3 >= 3.10
-#### for generating parser:
+#### for generating parser from grammar:
 * python3 >= 3.10
 * pegen
     ```
     python3 -m pip install pegen
+    ```
+#### for running tests:
+* pytest
+* coverage
+    ```
+    python3 -m pip install pytest coverage
     ```
 
 ### run ready-to-use interpreter:
@@ -31,3 +37,16 @@
     ```
     python3 -m pegen lolcode.gram -qo lolcode_parser.py
     ```
+### run tests:
+    ```
+    pytest ./test.py
+    ```
+
+### get coverage:
+    ```
+    coverage run --include=./lolcode.py,./lolcode_parser.py,./test.py  -m pytest test.py && coverage html
+    coverage html
+    ```
+
+### coverage screenshot:
+![screenshot](./lolcode_coverage.png)
