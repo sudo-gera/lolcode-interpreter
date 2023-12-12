@@ -363,30 +363,6 @@ class GeneratedParser(Parser):
         return None;
 
     @memoize
-    def hard_end_arg_list(self) -> Optional[Any]:
-        # hard_end_arg_list: mid_expr "AN" join hard_end_arg_list | end_expr ["MKAY" join]
-        mark = self._mark()
-        if (
-            (a := self.mid_expr())
-            and
-            (self.expect("AN"))
-            and
-            (self.join())
-            and
-            (b := self.hard_end_arg_list())
-        ):
-            return [a] + b;
-        self._reset(mark)
-        if (
-            (a := self.end_expr())
-            and
-            (self._tmp_8(),)
-        ):
-            return [a];
-        self._reset(mark)
-        return None;
-
-    @memoize
     def func_end_arg_list(self) -> Optional[Any]:
         # func_end_arg_list: "YR" join mid_expr "AN" join func_end_arg_list | "YR" join end_expr ["MKAY" join] | ["MKAY" join]
         # nullable=True
@@ -413,12 +389,12 @@ class GeneratedParser(Parser):
             and
             (a := self.end_expr())
             and
-            (self._tmp_9(),)
+            (self._tmp_8(),)
         ):
             return [a];
         self._reset(mark)
         if (
-            (self._tmp_10(),)
+            (self._tmp_9(),)
         ):
             return [...];
         self._reset(mark)
@@ -431,35 +407,9 @@ class GeneratedParser(Parser):
         if (
             (a := self.mid_expr())
             and
-            (self._tmp_11(),)
+            (self._tmp_10(),)
             and
             (b := self.soft_mid_arg_list())
-        ):
-            return [a] + b;
-        self._reset(mark)
-        if (
-            (a := self.end_expr())
-            and
-            (self.expect("MKAY"))
-            and
-            (self.join())
-        ):
-            return [a];
-        self._reset(mark)
-        return None;
-
-    @memoize
-    def hard_mid_arg_list(self) -> Optional[Any]:
-        # hard_mid_arg_list: mid_expr "AN" join hard_mid_arg_list | end_expr "MKAY" join
-        mark = self._mark()
-        if (
-            (a := self.mid_expr())
-            and
-            (self.expect("AN"))
-            and
-            (self.join())
-            and
-            (b := self.hard_mid_arg_list())
         ):
             return [a] + b;
         self._reset(mark)
@@ -878,7 +828,7 @@ class GeneratedParser(Parser):
         # float: (r"-?\d+\.\d*" | r"-?\.\d+") join
         mark = self._mark()
         if (
-            (a := self._tmp_12())
+            (a := self._tmp_11())
             and
             (self.join())
         ):
@@ -891,7 +841,7 @@ class GeneratedParser(Parser):
         # bool: ("WIN" | "FAIL") join
         mark = self._mark()
         if (
-            (a := self._tmp_13())
+            (a := self._tmp_12())
             and
             (self.join())
         ):
@@ -908,7 +858,7 @@ class GeneratedParser(Parser):
             and
             (self.join())
         ):
-            return ast . constant ( None , token = a );
+            return ast . Constant ( None , token = a );
         self._reset(mark)
         return None;
 
@@ -917,7 +867,7 @@ class GeneratedParser(Parser):
         # type: ("NOOB" | "TROOF" | "NUMBR" | "NUMBAR" | "YARN" | "TYPE") join
         mark = self._mark()
         if (
-            (a := self._tmp_14())
+            (a := self._tmp_13())
             and
             (self.join())
         ):
@@ -949,7 +899,7 @@ class GeneratedParser(Parser):
             and
             (self.join())
         ):
-            return ast . Compare ( left = ast . Constant ( None , token = token ) , ops = [ast . JoinedStr ( )] , comparators = [q for q in tail if q is not ...] );
+            return ast . Compare ( token = token , left = ast . Constant ( None , token = token ) , ops = [ast . JoinedStr ( )] , comparators = [q for q in tail if q is not ...] );
         self._reset(mark)
         return None;
 
@@ -1092,7 +1042,7 @@ class GeneratedParser(Parser):
             and
             (a := self.var_name())
             and
-            (b := self._tmp_15(),)
+            (b := self._tmp_14(),)
             and
             (self.new_line())
         ):
@@ -1180,11 +1130,11 @@ class GeneratedParser(Parser):
             and
             (name := self.var_name())
             and
-            (args := self._tmp_16(),)
+            (args := self._tmp_15(),)
             and
             (self.new_line())
             and
-            (body := self._loop0_17(),)
+            (body := self._loop0_16(),)
             and
             (self.expect("IF"))
             and
@@ -1275,7 +1225,7 @@ class GeneratedParser(Parser):
             and
             (self.new_line())
             and
-            (body := self._loop0_18(),)
+            (body := self._loop0_17(),)
             and
             (orelse := self.branch_tail())
         ):
@@ -1296,7 +1246,7 @@ class GeneratedParser(Parser):
             and
             (self.new_line())
             and
-            (body := self._loop0_19(),)
+            (body := self._loop0_18(),)
             and
             (orelse := self.branch_tail())
         ):
@@ -1313,7 +1263,7 @@ class GeneratedParser(Parser):
             and
             (self.new_line())
             and
-            (body := self._loop0_20(),)
+            (body := self._loop0_19(),)
             and
             (self.expect("OIC"))
             and
@@ -1349,9 +1299,9 @@ class GeneratedParser(Parser):
             and
             (self.new_line())
             and
-            (cases := self._loop0_21(),)
+            (cases := self._loop0_20(),)
             and
-            (default := self._tmp_22(),)
+            (default := self._tmp_21(),)
             and
             (self.expect("OIC"))
             and
@@ -1382,13 +1332,13 @@ class GeneratedParser(Parser):
             and
             (self.var_name())
             and
-            (a := self._tmp_23(),)
+            (a := self._tmp_22(),)
             and
-            (b := self._tmp_24(),)
+            (b := self._tmp_23(),)
             and
             (self.new_line())
             and
-            (body := self._loop0_25(),)
+            (body := self._loop0_24(),)
             and
             (self.expect("IM"))
             and
@@ -1680,20 +1630,7 @@ class GeneratedParser(Parser):
 
     @memoize
     def _tmp_10(self) -> Optional[Any]:
-        # _tmp_10: "MKAY" join
-        mark = self._mark()
-        if (
-            (literal := self.expect("MKAY"))
-            and
-            (join := self.join())
-        ):
-            return [literal, join];
-        self._reset(mark)
-        return None;
-
-    @memoize
-    def _tmp_11(self) -> Optional[Any]:
-        # _tmp_11: "AN" join
+        # _tmp_10: "AN" join
         mark = self._mark()
         if (
             (literal := self.expect("AN"))
@@ -1705,8 +1642,8 @@ class GeneratedParser(Parser):
         return None;
 
     @memoize
-    def _tmp_12(self) -> Optional[Any]:
-        # _tmp_12: r"-?\d+\.\d*" | r"-?\.\d+"
+    def _tmp_11(self) -> Optional[Any]:
+        # _tmp_11: r"-?\d+\.\d*" | r"-?\.\d+"
         mark = self._mark()
         if (
             (literal := self.expect(r"-?\d+\.\d*"))
@@ -1721,8 +1658,8 @@ class GeneratedParser(Parser):
         return None;
 
     @memoize
-    def _tmp_13(self) -> Optional[Any]:
-        # _tmp_13: "WIN" | "FAIL"
+    def _tmp_12(self) -> Optional[Any]:
+        # _tmp_12: "WIN" | "FAIL"
         mark = self._mark()
         if (
             (literal := self.expect("WIN"))
@@ -1737,8 +1674,8 @@ class GeneratedParser(Parser):
         return None;
 
     @memoize
-    def _tmp_14(self) -> Optional[Any]:
-        # _tmp_14: "NOOB" | "TROOF" | "NUMBR" | "NUMBAR" | "YARN" | "TYPE"
+    def _tmp_13(self) -> Optional[Any]:
+        # _tmp_13: "NOOB" | "TROOF" | "NUMBR" | "NUMBAR" | "YARN" | "TYPE"
         mark = self._mark()
         if (
             (literal := self.expect("NOOB"))
@@ -1773,8 +1710,8 @@ class GeneratedParser(Parser):
         return None;
 
     @memoize
-    def _tmp_15(self) -> Optional[Any]:
-        # _tmp_15: "ITZ" join end_expr
+    def _tmp_14(self) -> Optional[Any]:
+        # _tmp_14: "ITZ" join end_expr
         mark = self._mark()
         if (
             (literal := self.expect("ITZ"))
@@ -1788,8 +1725,8 @@ class GeneratedParser(Parser):
         return None;
 
     @memoize
-    def _tmp_16(self) -> Optional[Any]:
-        # _tmp_16: "YR" join var_name (("AN" join "YR" join var_name))*
+    def _tmp_15(self) -> Optional[Any]:
+        # _tmp_15: "YR" join var_name (("AN" join "YR" join var_name))*
         mark = self._mark()
         if (
             (literal := self.expect("YR"))
@@ -1798,11 +1735,24 @@ class GeneratedParser(Parser):
             and
             (var_name := self.var_name())
             and
-            (_loop0_26 := self._loop0_26(),)
+            (_loop0_25 := self._loop0_25(),)
         ):
-            return [literal, join, var_name, _loop0_26];
+            return [literal, join, var_name, _loop0_25];
         self._reset(mark)
         return None;
+
+    @memoize
+    def _loop0_16(self) -> Optional[Any]:
+        # _loop0_16: statement
+        mark = self._mark()
+        children = []
+        while (
+            (statement := self.statement())
+        ):
+            children.append(statement)
+            mark = self._mark()
+        self._reset(mark)
+        return children;
 
     @memoize
     def _loop0_17(self) -> Optional[Any]:
@@ -1845,33 +1795,20 @@ class GeneratedParser(Parser):
 
     @memoize
     def _loop0_20(self) -> Optional[Any]:
-        # _loop0_20: statement
+        # _loop0_20: (join "OMG" join constant new_line statement*)
         mark = self._mark()
         children = []
         while (
-            (statement := self.statement())
+            (_tmp_26 := self._tmp_26())
         ):
-            children.append(statement)
+            children.append(_tmp_26)
             mark = self._mark()
         self._reset(mark)
         return children;
 
     @memoize
-    def _loop0_21(self) -> Optional[Any]:
-        # _loop0_21: (join "OMG" join constant new_line statement*)
-        mark = self._mark()
-        children = []
-        while (
-            (_tmp_27 := self._tmp_27())
-        ):
-            children.append(_tmp_27)
-            mark = self._mark()
-        self._reset(mark)
-        return children;
-
-    @memoize
-    def _tmp_22(self) -> Optional[Any]:
-        # _tmp_22: "OMGWTF" join new_line statement*
+    def _tmp_21(self) -> Optional[Any]:
+        # _tmp_21: "OMGWTF" join new_line statement*
         mark = self._mark()
         if (
             (literal := self.expect("OMGWTF"))
@@ -1880,15 +1817,15 @@ class GeneratedParser(Parser):
             and
             (new_line := self.new_line())
             and
-            (_loop0_28 := self._loop0_28(),)
+            (_loop0_27 := self._loop0_27(),)
         ):
-            return [literal, join, new_line, _loop0_28];
+            return [literal, join, new_line, _loop0_27];
         self._reset(mark)
         return None;
 
     @memoize
-    def _tmp_23(self) -> Optional[Any]:
-        # _tmp_23: un_op_lit "YR" join var_name
+    def _tmp_22(self) -> Optional[Any]:
+        # _tmp_22: un_op_lit "YR" join var_name
         mark = self._mark()
         if (
             (un_op_lit := self.un_op_lit())
@@ -1904,23 +1841,23 @@ class GeneratedParser(Parser):
         return None;
 
     @memoize
-    def _tmp_24(self) -> Optional[Any]:
-        # _tmp_24: ("TIL" | "WILE") join end_expr
+    def _tmp_23(self) -> Optional[Any]:
+        # _tmp_23: ("TIL" | "WILE") join end_expr
         mark = self._mark()
         if (
-            (_tmp_29 := self._tmp_29())
+            (_tmp_28 := self._tmp_28())
             and
             (join := self.join())
             and
             (end_expr := self.end_expr())
         ):
-            return [_tmp_29, join, end_expr];
+            return [_tmp_28, join, end_expr];
         self._reset(mark)
         return None;
 
     @memoize
-    def _loop0_25(self) -> Optional[Any]:
-        # _loop0_25: statement
+    def _loop0_24(self) -> Optional[Any]:
+        # _loop0_24: statement
         mark = self._mark()
         children = []
         while (
@@ -1932,21 +1869,21 @@ class GeneratedParser(Parser):
         return children;
 
     @memoize
-    def _loop0_26(self) -> Optional[Any]:
-        # _loop0_26: ("AN" join "YR" join var_name)
+    def _loop0_25(self) -> Optional[Any]:
+        # _loop0_25: ("AN" join "YR" join var_name)
         mark = self._mark()
         children = []
         while (
-            (_tmp_30 := self._tmp_30())
+            (_tmp_29 := self._tmp_29())
         ):
-            children.append(_tmp_30)
+            children.append(_tmp_29)
             mark = self._mark()
         self._reset(mark)
         return children;
 
     @memoize
-    def _tmp_27(self) -> Optional[Any]:
-        # _tmp_27: join "OMG" join constant new_line statement*
+    def _tmp_26(self) -> Optional[Any]:
+        # _tmp_26: join "OMG" join constant new_line statement*
         mark = self._mark()
         if (
             (join := self.join())
@@ -1959,15 +1896,15 @@ class GeneratedParser(Parser):
             and
             (new_line := self.new_line())
             and
-            (_loop0_31 := self._loop0_31(),)
+            (_loop0_30 := self._loop0_30(),)
         ):
-            return [join, literal, join_1, constant, new_line, _loop0_31];
+            return [join, literal, join_1, constant, new_line, _loop0_30];
         self._reset(mark)
         return None;
 
     @memoize
-    def _loop0_28(self) -> Optional[Any]:
-        # _loop0_28: statement
+    def _loop0_27(self) -> Optional[Any]:
+        # _loop0_27: statement
         mark = self._mark()
         children = []
         while (
@@ -1979,8 +1916,8 @@ class GeneratedParser(Parser):
         return children;
 
     @memoize
-    def _tmp_29(self) -> Optional[Any]:
-        # _tmp_29: "TIL" | "WILE"
+    def _tmp_28(self) -> Optional[Any]:
+        # _tmp_28: "TIL" | "WILE"
         mark = self._mark()
         if (
             (literal := self.expect("TIL"))
@@ -1995,8 +1932,8 @@ class GeneratedParser(Parser):
         return None;
 
     @memoize
-    def _tmp_30(self) -> Optional[Any]:
-        # _tmp_30: "AN" join "YR" join var_name
+    def _tmp_29(self) -> Optional[Any]:
+        # _tmp_29: "AN" join "YR" join var_name
         mark = self._mark()
         if (
             (literal := self.expect("AN"))
@@ -2014,8 +1951,8 @@ class GeneratedParser(Parser):
         return None;
 
     @memoize
-    def _loop0_31(self) -> Optional[Any]:
-        # _loop0_31: statement
+    def _loop0_30(self) -> Optional[Any]:
+        # _loop0_30: statement
         mark = self._mark()
         children = []
         while (

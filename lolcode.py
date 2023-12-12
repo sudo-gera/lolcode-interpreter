@@ -19,8 +19,6 @@ class make_true:
         self.filename = filename
     def __pos__(self):
         return self.s
-    def __radd__(self, oth):
-        return oth+ +self
     def __repr__(self):
         return f'{self.s!r} at {self.filename}:{self.coord[0]}:{self.coord[1]}'
 
@@ -77,7 +75,8 @@ class char_parser(lolcode_parser.GeneratedParser):
         except KeyError:
             return None
 
-def simple_parser_main(parser_class) -> None:
+def lolcode_raising(argv) -> None:
+    parser_class = char_parser
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
         "-v",
@@ -95,7 +94,7 @@ def simple_parser_main(parser_class) -> None:
     )
     argparser.add_argument("filename", help="Input file ('-' to use stdin)")
 
-    args = argparser.parse_args()
+    args = argparser.parse_args(argv[1:])
     verbose_parser = args.verbose
 
     with open(args.filename) as file:
@@ -107,7 +106,7 @@ def simple_parser_main(parser_class) -> None:
         tokenizer.reset(tokenizer.max_pos)
         coord = tokenizer.get_coordinates()
         print(f'ERROR: SyntaxError at {tokenizer.filename}:{coord[0]}:{coord[1]}', file=sys.stderr)
-        sys.exit(1)
+        raise TabError
 
     if args.ast:
         print(ast.dump(tree, indent=4))
@@ -116,7 +115,7 @@ def simple_parser_main(parser_class) -> None:
         match res:
             case ast.Return() | ast.Break():
                 print(f'ERROR: Calling {res.token} in global scope is not allowed.', file=sys.stderr)
-                exit(1)
+                raise TabError
 
 type_names = {
     type(None): 'NOOB',
@@ -144,19 +143,19 @@ def lol_bool(value):
 def lol_num(value, type):
     try:
         return type(value)
-    except ValueError:
+    except (ValueError, TypeError):
         print(f'ERROR: Cannot convert {value!r} to {type_names[type]}.', file=sys.stderr)
-        exit(1)
+        raise TabError
 
 functions = {}
 
 def make_name_error(token):
     print(f'ERROR: Variable with name {token.token} is not declared. (Use I HAS A <name> to declare.)', file=sys.stderr)
-    exit(1)
+    raise TabError
 
 def make_func_error(token):
     print(f'ERROR: Function with name {token.token} is not declared. (Use HOW IZ I <name> to declare.)', file=sys.stderr)
-    exit(1)
+    raise TabError
 
 def lol_eval(tree, frame):
     match tree:
@@ -186,7 +185,7 @@ def lol_eval(tree, frame):
                         case ast.Lt(): return min(left, right)
                 case ast.BitAnd() | ast.BitXor() | ast.BitOr():
                     left = lol_bool(left)
-                    right = lol_bool(left)
+                    right = lol_bool(right)
                     match op:
                         case ast.BitAnd(): return left and right
                         case ast.BitOr(): return left or right
@@ -205,6 +204,9 @@ def lol_eval(tree, frame):
                     if right == type:
                         if type(left) != type:
                             print(f'ERROR: Cannot cast {type_names[type(left)]} to TYPE', file=sys.stderr)
+                            raise TabError
+                        else:
+                            res = left
                     if right == bool:
                         res = lol_bool(left)
                     match op:
@@ -243,24 +245,20 @@ def lol_eval(tree, frame):
             f = functions[func.id]
             if len(f.args.args) < len(args):
                 print(f'ERROR: Too much args to a function call {func.token}.', file=sys.stderr)
-                exit(1)
+                raise TabError
             if len(f.args.args) > len(args):
                 print(f'ERROR: Too few args to a function call {func.token}.', file=sys.stderr)
-                exit(1)
+                raise TabError
             new_frame = {'IT': None} | {
                 q.arg:lol_eval(w, frame)
                 for q,w in zip(f.args.args, args)
             }
             res = lol_exec(f.body, new_frame)
             match res:
-                case ast.Pass():
-                    return new_frame['IT']
                 case ast.Break():
                     return
                 case ast.Return(value):
                     return value
-        case a:
-            print('lol_eval', a)
 
 def lol_exec(tree_list, frame):
     for line in tree_list:
@@ -281,8 +279,8 @@ def lol_exec(tree_list, frame):
             case ast.FunctionDef(name=name, args=args, body=body):
                 functions[name] = line
             case ast.Return(value=value):
-                line.value = lol_eval(value, frame)
-                return line
+                value = lol_eval(value, frame)
+                return ast.Return(value = value, token = line.token)
             case ast.Break():
                 return line
             case ast.If(test, body, orelse):
@@ -312,7 +310,10 @@ def lol_exec(tree_list, frame):
                         case ast.Nonlocal(names):
                             to_save.extend(names)
                             body = body[:-1]
-                to_save = {name: frame[name] for name in to_save}
+                try:
+                    to_save = {name: frame[name] for name in to_save}
+                except KeyError:
+                    make_name_error(body[-1].value.operand)
                 res = ast.Pass()
                 while lol_bool(lol_eval(test, frame)):
                     res = lol_exec(body, frame)
@@ -331,10 +332,14 @@ def lol_exec(tree_list, frame):
             case ast.Store(values=values, end=end):
                 values = [lol_str(lol_eval(q, frame)) for q in values]
                 print(*values, sep='', end=end)
-            case a:
-                print('lol_exec', a)
     return ast.Pass()
 
+def lolcode(argv):
+    try:
+        lolcode_raising(argv)
+        return 0
+    except TabError:
+        return 1
 
 if __name__ == '__main__':
-    simple_parser_main(char_parser)
+    exit(lolcode(sys.argv))

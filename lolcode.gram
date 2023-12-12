@@ -87,9 +87,9 @@ soft_end_arg_list:
     | a=mid_expr ["AN" join] b=soft_end_arg_list {[a] + b}
     | a=end_expr ["MKAY" join] {[a]}
 
-hard_end_arg_list:
-    | a=mid_expr "AN" join b=hard_end_arg_list {[a] + b}
-    | a=end_expr ["MKAY" join] {[a]}
+# hard_end_arg_list:
+#     | a=mid_expr "AN" join b=hard_end_arg_list {[a] + b}
+#     | a=end_expr ["MKAY" join] {[a]}
 
 func_end_arg_list:
     | "YR" join a=mid_expr "AN" join b=func_end_arg_list {[a] + b}
@@ -100,9 +100,9 @@ soft_mid_arg_list:
     | a=mid_expr ["AN" join] b=soft_mid_arg_list {[a] + b}
     | a=end_expr "MKAY" join {[a]}
 
-hard_mid_arg_list:
-    | a=mid_expr "AN" join b=hard_mid_arg_list {[a] + b}
-    | a=end_expr "MKAY" join {[a]}
+# hard_mid_arg_list:
+#     | a=mid_expr "AN" join b=hard_mid_arg_list {[a] + b}
+#     | a=end_expr "MKAY" join {[a]}
 
 func_mid_arg_list:
     | "YR" join a=mid_expr "AN" join b=func_mid_arg_list {[a] + b}
@@ -237,7 +237,7 @@ float: a=(r"-?\d+\.\d*" | r"-?\.\d+") join {ast.Constant(value=float(+a), token=
 bool: a=("WIN" | "FAIL") join {ast.Constant(value=bool("FAIL WIN".index(+a)), token=a)}
 
 none: a="NOOB" join {
-    ast.constant(None, token=a)
+    ast.Constant(None, token=a)
 }
 
 type: a=("NOOB" | "TROOF" | "NUMBR" | "NUMBAR" | "YARN" | "TYPE") join {
@@ -255,6 +255,7 @@ var_name: a=r"\w+" join {ast.Name(id=+a, token=a) if +a not in self.SOFT_KEYWORD
 
 string: token=r'"' tail=string_tail join {
     ast.Compare(
+        token=token,
         left = ast.Constant(None, token=token),
         ops=[ast.JoinedStr()],
         comparators=[q for q in tail if q is not ...]

@@ -24,6 +24,7 @@
     python3 lolcode.py example.lol
     ```
 5. Happy coding!
+6. You can check an example in [first_primes.lol](./first_primes.lol)
 
 ### generate parser from the grammar:
 1. run this command:
