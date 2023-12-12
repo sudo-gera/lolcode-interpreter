@@ -306,13 +306,24 @@ def lol_exec(tree_list, frame):
                             case ast.Break():
                                 break
             case ast.While(test, body):
+                to_save = []
+                if body:
+                    match body[-1]:
+                        case ast.Nonlocal(names):
+                            to_save.extend(names)
+                            body = body[:-1]
+                to_save = {name: frame[name] for name in to_save}
+                res = ast.Pass()
                 while lol_bool(lol_eval(test, frame)):
                     res = lol_exec(body, frame)
                     match res:
-                        case ast.Return():
-                            return res
-                        case ast.Break():
+                        case ast.Return() | ast.Break():
                             break
+                for name, value in to_save.items():
+                    frame[name] = value
+                match res:
+                    case ast.Return():
+                        return res
             case ast.Load(value=value):
                 if value.id not in frame:
                     make_name_error(value)

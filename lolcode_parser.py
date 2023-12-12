@@ -1406,7 +1406,7 @@ class GeneratedParser(Parser):
             and
             (self.new_line())
         ):
-            return ast . While ( token = token , test = ast . Constant ( token = token , value = True ) if b is None else b [2] if + b [0] == "WILE" else ast . UnaryOp ( token = token , op = ast . Not ( token = token ) , operand = b [2] ) , body = [q for q in body if q is not ...] + ( [] if a is None else [ast . Assign ( token = a [0] . token , lineno = 0 , targets = [ast . Name ( token = token , id = "IT" )] , value = ast . UnaryOp ( token = a [0] . token , op = a [0] , operand = a [3] ) )] ) , orelse = [] , );
+            return ast . While ( token = token , test = ast . Constant ( token = token , value = True ) if b is None else b [2] if + b [0] == "WILE" else ast . UnaryOp ( token = token , op = ast . Not ( token = token ) , operand = b [2] ) , body = [q for q in body if q is not ...] + ( [] if a is None else [ast . Assign ( token = a [0] . token , lineno = 0 , targets = [ast . Name ( token = token , id = "IT" )] , value = ast . UnaryOp ( token = a [0] . token , op = a [0] , operand = a [3] ) ) , ast . Nonlocal ( token = a [0] . token , names = [a [3] . id] , )] ) , orelse = [] , );
         self._reset(mark)
         return None;
 

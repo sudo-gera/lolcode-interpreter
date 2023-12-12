@@ -403,16 +403,22 @@ loop: token="IM" join "IN" join "YR" join var_name a=[un_op_lit "YR" join var_na
         body=[q for q in body if q is not ...] + (
             []
             if a is None else
-            [ast.Assign(
-                token=a[0].token,
-                lineno=0,
-                targets=[ast.Name(token=token, id="IT")],
-                value=ast.UnaryOp(
+            [
+                ast.Assign(
                     token=a[0].token,
-                    op=a[0],
-                    operand=a[3]
+                    lineno=0,
+                    targets=[ast.Name(token=token, id="IT")],
+                    value=ast.UnaryOp(
+                        token=a[0].token,
+                        op=a[0],
+                        operand=a[3]
+                    )
+                ),
+                ast.Nonlocal(
+                    token=a[0].token,
+                    names=[a[3].id],
                 )
-            )]
+            ]
         ),
         orelse=[],
     )
