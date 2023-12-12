@@ -1,0 +1,459 @@
+start[ast.Module]: void* b=begin a=(statement)* end void* "$" {
+    ast.Module(
+        token=b,
+        body=[q for q in a if q is not ...],
+        type_ignores=[],
+    )
+}
+
+new_line:
+    | "\n"
+    | ","
+    | "$"
+
+space:
+    | " "
+    | "\t"
+
+join_one: (space | r"\.\.\." new_line | "…" new_line) {...}
+# join_one: space {...}
+# join: " "? {...}
+join: join_one* {...}
+join_stmt: join_one+ {...}
+
+new_line_stmt:
+    | "\n" {...}
+    | "," {...}
+
+void:
+    | long_comment
+    | comment
+    | join_stmt
+    | new_line_stmt
+
+statement:
+    | long_comment
+    | comment
+    | expr_stmt
+    | join_stmt
+    | declare
+    | assign
+    | func
+    | found
+    | gtfo
+    | branch
+    | switch
+    | loop
+    | new_line_stmt
+    | visible
+    | gimmeh
+    | cast
+
+expr_stmt: a=end_expr new_line {
+    ast.Assign(
+        token = a.token,
+        targets=[
+            ast.Name(
+                token = a.token,
+                id="IT",
+            )
+        ],
+        value = a,
+        lineno=0,
+    )
+}
+
+end_expr:
+    | mid_expr
+    | hard_end_bin_op
+    | soft_end_bin_op
+    | soft_end_var_op
+    | end_call
+    | end_un_op
+    # | hard_end_var_op
+
+mid_expr:
+    | hard_mid_bin_op
+    | soft_mid_bin_op
+    | soft_mid_var_op
+    | constant
+    | var_name
+    | mid_call
+    | mid_un_op
+    | make
+    # | hard_mid_var_op
+
+soft_end_arg_list:
+    | a=mid_expr ["AN" join] b=soft_end_arg_list {[a] + b}
+    | a=end_expr ["MKAY" join] {[a]}
+
+hard_end_arg_list:
+    | a=mid_expr "AN" join b=hard_end_arg_list {[a] + b}
+    | a=end_expr ["MKAY" join] {[a]}
+
+func_end_arg_list:
+    | "YR" join a=mid_expr "AN" join b=func_end_arg_list {[a] + b}
+    | "YR" join a=end_expr ["MKAY" join] {[a]}
+    | ["MKAY" join] {[...]}
+
+soft_mid_arg_list:
+    | a=mid_expr ["AN" join] b=soft_mid_arg_list {[a] + b}
+    | a=end_expr "MKAY" join {[a]}
+
+hard_mid_arg_list:
+    | a=mid_expr "AN" join b=hard_mid_arg_list {[a] + b}
+    | a=end_expr "MKAY" join {[a]}
+
+func_mid_arg_list:
+    | "YR" join a=mid_expr "AN" join b=func_mid_arg_list {[a] + b}
+    | "YR" join a=mid_expr "MKAY" join {[a]}
+    | "MKAY" join {[...]}
+
+end_un_op: op=un_op_lit operand=end_expr {
+    ast.UnaryOp(
+        token = op.token,
+        op=op,
+        operand=operand
+    )
+}
+
+mid_un_op: op=un_op_lit operand=mid_expr {
+    ast.UnaryOp(
+        token = op.token,
+        op=op,
+        operand=operand
+    )
+}
+
+hard_end_bin_op: op=hard_bin_op_lit left=mid_expr "AN" join right=end_expr {
+    ast.BinOp(
+        token = op.token,
+        left=left,
+        op=op,
+        right=right
+    )
+}
+
+soft_end_bin_op: op=soft_bin_op_lit left=mid_expr ["AN"] join right=end_expr {
+    ast.BinOp(
+        token = op.token,
+        left=left,
+        op=op,
+        right=right
+    )
+}
+
+hard_mid_bin_op: op=hard_bin_op_lit left=mid_expr "AN" join right=mid_expr {
+    ast.BinOp(
+        token = op.token,
+        left=left,
+        op=op,
+        right=right
+    )
+}
+
+soft_mid_bin_op: op=soft_bin_op_lit left=mid_expr ["AN"] join right=mid_expr {
+    ast.BinOp(
+        token = op.token,
+        left=left,
+        op=op,
+        right=right
+    )
+}
+
+# hard_end_var_op: op=hard_var_op_lit args=hard_end_arg_list {
+#     ast.Compare(
+#         token = op.token,
+#         ops=[op],
+#         comparators=args,
+#         left=ast.Constant(value=None)
+#     )
+# }
+
+soft_end_var_op: op=soft_var_op_lit args=soft_end_arg_list {
+    ast.Compare(
+        token = op.token,
+        ops=[op],
+        comparators=args,
+        left=ast.Constant(value=None)
+    )
+}
+
+# hard_mid_var_op: op=hard_var_op_lit args=hard_mid_arg_list {
+#     ast.Compare(
+#         token = op.token,
+#         ops=[op],
+#         comparators=args,
+#         left=ast.Constant(value=None)
+#     )
+# }
+
+soft_mid_var_op: op=soft_var_op_lit args=soft_mid_arg_list {
+    ast.Compare(
+        token = op.token,
+        ops=[op],
+        comparators=args,
+        left=ast.Constant(value=None)
+    )
+}
+
+hard_bin_op_lit:
+    | token="SUM" join "OF" join {ast.Add(token=token)}
+    | token="DIFF" join "OF" join {ast.Sub(token=token)}
+    | token="PRODUKT" join {ast.Mult(token=token)}
+    | token="QUOSHUNT" join {ast.Div(token=token)}
+    | token="MOD" join "OF" join {ast.Mod(token=token)}
+    | token="BIGGR" join {ast.Gt(token=token)}
+    | token="SMALLR" join {ast.Lt(token=token)}
+
+soft_bin_op_lit:
+    | token="BOTH" join "OF" join {ast.BitAnd(token=token)}
+    | token="EITHER" join "OF" join {ast.BitOr(token=token)}
+    | token="WON" join "OF" join {ast.BitXor(token=token)}
+    | token="BOTH" join "SAEM" join {ast.Eq(token=token)}
+    | token="DIFFRINT" join {ast.NotEq(token=token)}
+
+soft_var_op_lit:
+    | token="ALL" join "OF" join {ast.And(token=token)}
+    | token="ANY" join "OF" join {ast.Or(token=token)}
+    | token="SMOOSH" join {ast.JoinedStr(token=token)}
+
+un_op_lit:
+    | token="UPPIN" join {ast.UAdd(token=token)}
+    | token="NERFIN" join {ast.USub(token=token)}
+
+constant:
+    | int
+    | float
+    | string
+    | bool
+    | none
+    | type
+
+int: a=r"-?\d+" !r"\." join {ast.Constant(value=int(+a),token=a)}
+
+float: a=(r"-?\d+\.\d*" | r"-?\.\d+") join {ast.Constant(value=float(+a), token=a)}
+
+bool: a=("WIN" | "FAIL") join {ast.Constant(value=bool("FAIL WIN".index(+a)), token=a)}
+
+none: a="NOOB" join {
+    ast.constant(None, token=a)
+}
+
+type: a=("NOOB" | "TROOF" | "NUMBR" | "NUMBAR" | "YARN" | "TYPE") join {
+    ast.Constant({
+        'NOOB': type(None),
+        'TROOF': bool,
+        'NUMBR': int,
+        'NUMBAR': float,
+        'YARN': str,
+        'TYPE': type,
+    }[+a], token=a)
+}
+
+var_name: a=r"\w+" join {ast.Name(id=+a, token=a) if +a not in self.SOFT_KEYWORDS + self.KEYWORDS else None}
+
+string: token=r'"' tail=string_tail join {
+    ast.Compare(
+        left = ast.Constant(None, token=token),
+        ops=[ast.JoinedStr()],
+        comparators=[q for q in tail if q is not ...]
+    )
+}
+
+hex: a='(\d|[A-Fa-f])+' 
+
+unicode_name: a=r'[^]]+' { self.unicode_lookup(+a) }
+
+string_tail:
+    | token=r':\)' tail=string_tail {[ast.Constant(token=token, value='\n')]+tail}
+    | token=r':>' tail=string_tail {[ast.Constant(token=token, value='\t')]+tail}
+    | token=r':o' tail=string_tail {[ast.Constant(token=token, value='\a')]+tail}
+    | token=r':"' tail=string_tail {[ast.Constant(token=token, value='"')]+tail}
+    | token=r'::' tail=string_tail {[ast.Constant(token=token, value=':')]+tail}
+    | head='' '"' {[...]}
+    | r':\{' join head=end_expr '\}' tail=string_tail {
+        [head] + tail
+    }
+    | r':\(' join head=hex join '\)' tail=string_tail {[ast.Constant(token=head, value=chr(int(+head, 16)))]+tail}
+    | r':\[' join head=unicode_name join '\]' tail=string_tail {[ast.Constant(token=head, value=head)]+tail}
+    | head=r'.' tail=string_tail {[ast.Constant(token=head, value=+head)]+tail}
+
+declare: token="I" join "HAS" join "A" join a=var_name b=["ITZ" join end_expr] new_line {
+    ast.AnnAssign(
+        token=token,
+        target=a,
+        value=b[2] if b else ast.Constant(None, token=token),
+    )
+}
+
+assign: a=var_name "R" join b=end_expr new_line {
+    ast.Assign(
+        token=a,
+        targets=[a],
+        value=b,
+        lineno=0,
+    )
+}
+
+end_call: token="I" join "IZ" join func=var_name args=func_end_arg_list {
+    ast.Call(
+        token=token,
+        func=func,
+        args=[q for q in args if q is not ...],
+        keywords=[],
+    )
+}
+
+mid_call: token="I" join "IZ" join func=var_name args=func_mid_arg_list {
+    ast.Call(
+        token=token,
+        func=func,
+        args=[q for q in args if q is not ...],
+        keywords=[],
+    )
+}
+
+func: token="HOW" join "IZ" join "I" join name=var_name args=["YR" join var_name ("AN" join "YR" join var_name)*] new_line body=statement* "IF" join "U" join "SAY" join "SO" join new_line {
+    ast.FunctionDef(
+        token=token,
+        name=name.id,
+        args=ast.arguments(
+            token=token,
+            posonlyargs=[],
+            args=[] if args is None else [ast.arg(token=token, arg=q[-1].id) for q in [args[:3]]+args[3]],
+            kwonlyargs=[],
+            kw_defaults=[],
+            defaults=[],
+        ),
+        body=[q for q in body if q is not ...] + [
+            ast.Return(token=token, value = ast.Name(id='IT'))
+        ],
+        decorator_list=[],
+        lineno=0,
+    )    
+}
+
+found: token="FOUND" join "YR" join value=end_expr new_line {
+    ast.Return(value = value, token=token)
+}
+
+gtfo: token="GTFO" join new_line {
+    ast.Break(token=token)
+}
+
+branch: token="O" join "RLY" join r"\?" join new_line join "YA" join "RLY" join new_line body=statement* orelse=branch_tail {
+    ast.If(
+        token=token,
+        test=ast.Name(id='IT'),
+        body=[q for q in body if q is not ...],
+        orelse=[q for q in orelse if q is not ...],
+    )
+}
+
+branch_tail:
+    | token="MEBBE" join test=end_expr new_line body=statement* orelse=branch_tail {
+        [ast.If(
+            token=token,
+            test=test,
+            body=[q for q in body if q is not ...],
+            orelse=[q for q in orelse if q is not ...],
+        )]
+    }
+    | "NO" join "WAI" join new_line body=statement* "OIC" join new_line {
+        body + [...]
+    }
+    | "OIC" join new_line {
+        [...]
+    }
+
+switch: token="WTF" join r"\?" join new_line cases=(join "OMG" join constant new_line statement*)* default=("OMGWTF" join new_line statement*)? "OIC" join new_line {
+    ast.Match(
+        token=token,
+        subject=ast.Name(token=token, id='IT'),
+        cases=[
+            ast.match_case(
+                token=token,
+                pattern=q[3],
+                body=[w for w in q[5] if w is not ...],
+            )
+            for q in cases
+        ] + ([
+            ast.match_case(
+                token=token,
+                pattern=ast.MatchAs(),
+                body=[q for q in default[3] if q is not ...],
+            )
+        ] if default is not None else [])
+    )
+}
+
+loop: token="IM" join "IN" join "YR" join var_name a=[un_op_lit "YR" join var_name] b=[("TIL"|"WILE") join end_expr] new_line body=statement* "IM" join "OUTTA" join "YR" join var_name new_line {
+    ast.While(
+        token=token,
+        test=ast.Constant(token=token, value=True)
+            if b is None else
+        b[2]
+            if +b[0]=="WILE" else
+        ast.UnaryOp(
+            token=token,
+            op=ast.Not(token=token),
+            operand=b[2]
+        ),
+        body=[q for q in body if q is not ...] + (
+            []
+            if a is None else
+            [ast.Assign(
+                token=a[0].token,
+                lineno=0,
+                targets=[ast.Name(token=token, id="IT")],
+                value=ast.UnaryOp(
+                    token=a[0].token,
+                    op=a[0],
+                    operand=a[3]
+                )
+            )]
+        ),
+        orelse=[],
+    )
+}
+
+comment: "BTW" r"[^\n]*\n" {...}
+
+comment_content: "OBTW" r".*?(?=TLDR)" "TLDR" {...}
+
+long_comment: comment_content new_line {...}
+
+begin: "HAI" join float new_line {...}
+
+end: "KTHXBYE" join new_line {...}
+
+visible: token="VISIBLE" join values=soft_end_arg_list? no_end=["!"] {
+    ast.Store(values=[] if values is None else values, token=token, end='\n' if no_end is None else '')
+}
+
+gimmeh: token="GIMMEH" join value=var_name {
+    ast.Load(value=value, token=token)
+}
+
+cast: left=var_name "IS" join "NOW" join "A" join right=type {
+    ast.Expr(
+        token=left,
+        value=ast.BinOp(
+            token=left,
+            left=left,
+            op=ast.LShift(),
+            right=right,
+        )
+    )
+}
+
+make: "MAEK" join left=mid_expr "A" join right=type {
+    ast.BinOp(
+        token=left,
+        left=left,
+        op=ast.RShift(),
+        right=right,
+    )
+}
+
